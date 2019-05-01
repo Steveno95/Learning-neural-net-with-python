@@ -26,9 +26,9 @@ hidden_dim = 16
 output_dim = 1
 
 #init neural net weights
-synapse_0 = 2*np.random.random((input_dim,hidden_dim)) - 1
-synapse_1 = 2*np.random.random((hidden_dim,output_dim)) - 1
-synapse_h = 2*np.random.random((hidden_dim,hidden_dim)) - 1
+synapse_0 = 2 * np.random.random((input_dim, hidden_dim)) - 1
+synapse_1 = 2  *np.random.random((hidden_dim, output_dim)) - 1
+synapse_h = 2 * np.random.random((hidden_dim, hidden_dim)) - 1
 
 synapse_0_update = np.zeros_like(synapse_0)
 synapse_1_update = np.zeros_like(synapse_1)
@@ -63,14 +63,14 @@ for j in range(10000):
         y = np.array([[c[binary_dim - position - 1]]]).T
 
         #hidden layer (input ~+ prev_hidden)
-        layer_1 = sigmoid(np.dot(X,synapse_0) + np.dot(layer_1_values[-1],synapse_h))
+        layer_1 = sigmoid(np.dot(X,synapse_0) + np.dot(layer_1_values[-1], synapse_h))
 
         #output layer (new binary representation)
-        layer_2 = sigmoid(np.dot(layer_1,synapse_1))
+        layer_2 = sigmoid(np.dot(layer_1, synapse_1))
 
         #did we miss?... if so, by how much?
         layer_2_error = y - layer_2
-        layer_2_deltas.append((layer_2_error)*sigmoid_output_to_derivative(layer_2))
+        layer_2_deltas.append((layer_2_error) * sigmoid_to_derivative(layer_2))
         overallError += np.abs(layer_2_error[0])
     
         #decode estimate so we can print it out
@@ -82,14 +82,14 @@ for j in range(10000):
     future_layer_1_delta = np.zeros(hidden_dim)
 
     for position in range(binary_dim):
-        X = np.array([[a[position],b[position]]])
+        X = np.array([[a[position], b[position]]])
         layer_1 = layer_1_values[-position-1]
         prev_layer_1 = layer_1_values[-position-2]
         
         # error at output layer
         layer_2_delta = layer_2_deltas[-position-1]
         # error at hidden layer
-        layer_1_delta = (future_layer_1_delta.dot(synapse_h.T) + layer_2_delta.dot(synapse_1.T)) * sigmoid_output_to_derivative(layer_1)
+        layer_1_delta = (future_layer_1_delta.dot(synapse_h.T) + layer_2_delta.dot(synapse_1.T)) * sigmoid_to_derivative(layer_1)
 
         # let's update all our weights so we can try again
         synapse_1_update += np.atleast_2d(layer_1).T.dot(layer_2_delta)
@@ -106,4 +106,13 @@ for j in range(10000):
     synapse_1_update *= 0
     synapse_h_update *= 0
 
-    
+    # print out progress
+    if(j % 1000 == 0):
+        print("Error:" + str(overallError))
+        print("Pred:" + str(d))
+        print("True:" + str(c))
+        out = 0
+        for index, x in enumerate(reversed(d)):
+            out += x * pow(2, index)
+        print(str(a_int) + " + " + str(b_int) + " = " + str(out))
+        print("---------------")
